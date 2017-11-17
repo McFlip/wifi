@@ -22,20 +22,20 @@ def processQue(packet_queu, time, numSuccess):
     of.write("Time: {} Packet: {}: {} {} {} {} {}\n".format(int(packet_queu[0][4]) + int(packet_queu[0][3]), packet_queu[0][0], packet_queu[0][1], packet_queu[0][2], packet_queu[0][3], packet_queu[0][4], finish))
     packet_queu.popleft()
   return numSuccess
-  
+
 #returns a time 0 to 15 at first
 #numBackOffs increments when an ack is not received
 def binExpBackoff(numOfBackoffs, slotTime, totalLatencyPerNode, src_node):
-	if(numOfBackoffs = 0)
-		timeToWait = randint(0, 15*slotTime)
-	elif(numOfBackoffs >=6)
-		timeToWait = randint(0, 1024*slotTime)
-	else
-		timeToWait = randint(0, (32 * (2 ** (numOfBackoffs-1))) * slotTime)
-		#!!!!Will this actually be changed!?!?
-	totalLatencyPerNode[src_node] = totalLatencyPerNode[src_node] + timeToWait
+  if(numOfBackoffs == 0):
+    timeToWait = randint(0, 15*slotTime)
+  elif(numOfBackoffs >=6):
+    timeToWait = randint(0, 1024*slotTime)
+  else:
+    timeToWait = randint(0, (32 * (2 ** (numOfBackoffs-1))) * slotTime)
+    #!!!!Will this actually be changed!?!?
+  totalLatencyPerNode[src_node] = totalLatencyPerNode[src_node] + timeToWait
   return timeToWait
-  
+
 #*** set up arguments ***
 parser = argparse.ArgumentParser(prog='DCF', description='Simulates the 802.11 DCF MAC protocol for a given traffic file.')
 parser.add_argument("-t","--trafficfile", help="traffic file", default=os.path.join(os.getcwd(), "traffic"))
@@ -81,7 +81,7 @@ ackTime = 44	#us
 slotTime = 9	#us
 difsTime = 28	#us
 sifsTime = 10	#us
-	
+
 # do stuff
 with open(outPath, 'w') as of:
   with open(trafficfile, 'r') as tf:
@@ -91,31 +91,31 @@ with open(outPath, 'w') as of:
     #offerdLoad = float(stats[1])
 
     for line in tf:
-	  #**** line format *****
-	  #packet[0] : pkt_id   *
-	  #packet[1] : src_node *
-	  #packet[2] : dst_node *
-	  #packet[3] : pkt_size *
-	  #packet[4] : time     *
-	  #**********************
-		
+    #**** line format *****
+    #packet[0] : pkt_id   *
+    #packet[1] : src_node *
+    #packet[2] : dst_node *
+    #packet[3] : pkt_size *
+    #packet[4] : time     *
+    #**********************
+
       packet = line.split()
       time = int(packet[4])
       packet.append("")
-	  
-		#increase list sizes if necessary
-			while(len(numPktPerNode) < packet[1] + 1)
-				numPktPerNode.append(0)
-				totalLatencyPerNode.append(0)
-				
-			#count how many packets each node sends
-			++numPktPerNode[packet[1]]
-	
-	  
+
+    #increase list sizes if necessary
+      while(len(numPktPerNode) < packet[1] + 1):
+        numPktPerNode.append(0)
+        totalLatencyPerNode.append(0)
+
+      #count how many packets each node sends
+      ++numPktPerNode[packet[1]]
+
+
       #wait DIFS time
-			time = time + difsTime
-			
-			#process what should have happened
+      time = time + difsTime
+
+      #process what should have happened
       numSuccess = processQue(sending_qwee, time, numOfTransmissions, numOfCollisions, timeMediaUtilized)
 
       # ***** Changed for csma
