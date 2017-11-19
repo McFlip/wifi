@@ -227,12 +227,12 @@ with open(outPath, 'w') as of:
       for i in range(numNodes):
         if(waiting_qwee[i] and i != nodeWhoGetsTurn):
             if(isBusy):
-              if(networkState[i][1] == 0 and networkState[i][1] == 3 and networkState[i][1] == 4):
+              if(networkState[i][0] == 0 and networkState[i][0] == 3 and networkState[i][0] == 4):
                 networkState[i][1] = networkState[i][1] - (time-oldtime)
             else: #if not Busy
               networkState[i][1] = networkState[i][1] - (time-oldtime)
               if(networkState[nodeWhoGetsTurn][0] == 2):
-                if(networkState[i][0] == 2):
+                if(networkState[i][0] == 2 and networkState[i][1] != 0):
                   networkState[i][2] = (ceildiv(networkState[i][1],slotTime)) * slotTime
                   networkState[i][0] = 0
                   networkState[i][1] = 0
