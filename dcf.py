@@ -10,13 +10,7 @@ import os
 from collections import deque
 from copy import deepcopy
 #from random import *
-_randomi = 0
-def randint(a,b):
-  global _randomi
-  nonrando = [3,14,8]
-  result = nonrando[_randomi]
-  _randomi = _randomi + 1
-  return result
+from nonrandom import *
 
 
 #*** Function definitions ***
@@ -198,7 +192,8 @@ with open(outPath, 'w') as of:
       #|||||||Process the Event|||||||
       #if node is starting to wait for DIFS
       if(networkState[nodeWhoGetsTurn][0] == 0):
-        of.write("Time: {} Node {} started waiting for DIFS\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1]))
+        pass
+        #of.write("Time: {} Node {} started waiting for DIFS\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1]))
       #if node has finished waiting for DIFS
       elif(networkState[nodeWhoGetsTurn][0] == 1):
         #check if node already picked slots
@@ -229,8 +224,8 @@ with open(outPath, 'w') as of:
       #if node has finished waiting for ACK
       elif(networkState[nodeWhoGetsTurn][0] == 4):
         of.write("Time: {} Node {} sent {} bits\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1], waiting_qwee[nodeWhoGetsTurn][0][3]))
-      elif(networkState[nodeWhoGetsTurn][0] == 5)
-        if(networkState[nodeWhoGetsTurn][2] != 0)
+      elif(networkState[nodeWhoGetsTurn][0] == 5):
+        if(networkState[nodeWhoGetsTurn][2] != 0):
           of.write("Time: {} Node {} had {} more slots when the channel became busy!\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1], networkState[nodeWhoGetsTurn][2]/slotTime))
         of.write("Time: {} Node {} started waiting for DIFS\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1]))
       #--------------UPDATE NETWORKSTATE--------------
@@ -252,8 +247,8 @@ with open(outPath, 'w') as of:
                   networkState[i][1] = 0
       #update the node who got the turn
       if(networkState[nodeWhoGetsTurn][0] == 0):	#if done waiting for packet
-        networkState[nodeWhoGetsTurn][0] = 1
-        networkState[nodeWhoGetsTurn][1] = difsTime
+        networkState[nodeWhoGetsTurn][0] = 5
+        networkState[nodeWhoGetsTurn][1] = 0
       elif(networkState[nodeWhoGetsTurn][0] == 1):	#if done waiting for DIFS
         networkState[nodeWhoGetsTurn][0] = 2
       elif(networkState[nodeWhoGetsTurn][0] == 2):	#if done waiting for slots
