@@ -179,7 +179,8 @@ with open(outPath, 'w') as of:
             elif(networkState[i][1] == shortestTime and networkState[nodeWhoGetsTurn][0] == 2):
               nodeWhoGetsTurn = i
           else: #isBusy
-            if(networkState[i][1] < shortestTime and (networkState[i][0] == 0 or networkState[i][0] == 3 or networkState[i][0] == 4) ):
+            #only let those with state 0, 3, or 4 continue; let state 2 continue if it was a collisions(if timeTillNextThing == 0)
+            if(networkState[i][1] < shortestTime and (networkState[i][0] == 0 or networkState[i][0] == 3 or networkState[i][0] == 4 or (networkState[i][0] == 2 and networkState[i][1] == 0)) ):
               shortestTime = networkState[i][1]
               nodeWhoGetsTurn = i
       #if no more events we are done
@@ -242,6 +243,7 @@ with open(outPath, 'w') as of:
                   networkState[i][2] = (ceildiv(networkState[i][1],slotTime)) * slotTime
                   networkState[i][0] = 5
                   networkState[i][1] = 0
+                  networkState[i][3] = 1
                 elif(networkState[i][0] == 1):
                   networkState[i][0] = 5
                   networkState[i][1] = 0
@@ -257,14 +259,15 @@ with open(outPath, 'w') as of:
         networkState[nodeWhoGetsTurn][2] = 0
         isBusy = 1
         ++sending
-        if(sending > 0):
+        if(sending > 1):
           collision = 1
       elif(networkState[nodeWhoGetsTurn][0] == 3):	#if done waiting for transmission
         if(collision): #do binary backoff and reset to waiting for DIFS
           networkState[nodeWhoGetsTurn][2] = binExpBackoff(waiting_qwee[nodeWhoGetsTurn][0][6], slotTime, totalLatencyPerNode, waiting_qwee[nodeWhoGetsTurn][0][1])
           ++waiting_qwee[nodeWhoGetsTurn][0][6]
-          networkState[nodeWhoGetsTurn][0] = 0
-          networkState[nodeWhoGetsTurn][0] = 0
+          networkState[nodeWhoGetsTurn][0] = 5
+          networkState[nodeWhoGetsTurn][1] = 0
+          networkState[nodeWhoGetsTurn][3] = 2
           --sending
           if(sending == 0):
             collision = 0
