@@ -10,7 +10,7 @@ import os
 from collections import deque
 from copy import deepcopy
 #from random import *
-from nonrandom import *
+from nonrandom import * #TEST
 
 
 #*** Function definitions ***
@@ -116,7 +116,7 @@ with open(outPath, 'w') as of:
         numNodes = numNodes + 1
 
       #count number of packets sent by each node
-      ++numPktPerNode[packet[1]]
+      numPktPerNode[packet[1]] += 1
 
       packet.append(9999)  #time_to_backoff
       packet.append(0)  #num_backoffs
@@ -168,7 +168,6 @@ with open(outPath, 'w') as of:
       #------------find the next event------------
       #if medium isn't busy then any event can win
       #but node starting to send takes least precedence
-      collision = 0
       shortestTime = 999999999
       for i in range(numNodes):
         if(waiting_qwee[i]):
@@ -200,7 +199,7 @@ with open(outPath, 'w') as of:
         #check if node already picked slots
         if(networkState[nodeWhoGetsTurn][2] == 0):
           networkState[nodeWhoGetsTurn][1] = binExpBackoff(waiting_qwee[nodeWhoGetsTurn][0][6], slotTime, totalLatencyPerNode, waiting_qwee[nodeWhoGetsTurn][0][1])
-          ++waiting_qwee[nodeWhoGetsTurn][0][6]
+          waiting_qwee[nodeWhoGetsTurn][0][6] += 1
         else:
           networkState[nodeWhoGetsTurn][1] = networkState[nodeWhoGetsTurn][2]
           networkState[nodeWhoGetsTurn][2] = 0
@@ -258,19 +257,21 @@ with open(outPath, 'w') as of:
         networkState[nodeWhoGetsTurn][1] = ceildiv(waiting_qwee[nodeWhoGetsTurn][0][3],dataRate)
         networkState[nodeWhoGetsTurn][2] = 0
         isBusy = 1
-        ++sending
+        sending += 1
         if(sending > 1):
           collision = 1
+          print "line263:", collision #TEST
       elif(networkState[nodeWhoGetsTurn][0] == 3):	#if done waiting for transmission
         if(collision): #do binary backoff and reset to waiting for DIFS
           networkState[nodeWhoGetsTurn][2] = binExpBackoff(waiting_qwee[nodeWhoGetsTurn][0][6], slotTime, totalLatencyPerNode, waiting_qwee[nodeWhoGetsTurn][0][1])
-          ++waiting_qwee[nodeWhoGetsTurn][0][6]
+          waiting_qwee[nodeWhoGetsTurn][0][6] += 1
           networkState[nodeWhoGetsTurn][0] = 5
           networkState[nodeWhoGetsTurn][1] = 0
           networkState[nodeWhoGetsTurn][3] = 2
-          --sending
+          sending -= 1
           if(sending == 0):
             collision = 0
+            print "line274:", collision #TEST
             isBusy = 0
         else: #no collision
           networkState[nodeWhoGetsTurn][0] = 4
