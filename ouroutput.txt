@@ -1,0 +1,15 @@
+Time: 1 Node 1 started waiting for DIFS
+Time: 29 Node 1 finished waiting for DIFS and started waiting for 3 slots
+Time: 56 Node 1 finished waiting and is ready to send the packet.
+Time: 127 Node 1 sent 100 bits
+Time: 266 Node 0 started waiting for DIFS
+Time: 270 Node 2 started waiting for DIFS
+Time: 294 Node 0 finished waiting for DIFS and started waiting for 14 slots
+Time: 298 Node 2 finished waiting for DIFS and started waiting for 8 slots
+Time: 370 Node 2 finished waiting and is ready to send the packet.
+Time: 370 Node 0 had 54 more slots when the channel became busy!
+Time: 370 Node 0 started waiting for DIFS
+Time: 415 Node 0 finished waiting for DIFS and started waiting for 6 slots
+Time: 441 Node 2 sent 100 bits
+Time: 495 Node 0 finished waiting and is ready to send the packet.
+Time: 566 Node 0 sent 100 bits

@@ -9,7 +9,15 @@ import argparse
 import os
 from collections import deque
 from copy import deepcopy
-from random import *
+#from random import *
+_randomi = 0
+def randint(a,b):
+  global _randomi
+  nonrando = [3,14,8]
+  result = nonrando[_randomi]
+  _randomi = _randomi + 1
+  return result
+
 
 #*** Function definitions ***
 def processQue(sending_qwee, time, numOfTransmissions, numOfCollisions, timeMediaUtilized):
@@ -33,8 +41,8 @@ def binExpBackoff(numOfBackoffs, slotTime, totalLatencyPerNode, src_node):
   else:
     slotsToWait = randint(0, (32 * (2 ** (numOfBackoffs-1))))
     #!!!!Will this value actually be changed!?!?
-  totalLatencyPerNode[src_node] = totalLatencyPerNode[src_node] + (timeToWait * slotsToWait)
-  return timeToWait * slotTime
+  totalLatencyPerNode[src_node] = totalLatencyPerNode[src_node] + (slotsToWait * slotTime)
+  return slotsToWait * slotTime
 
 #ceiling division
 def ceildiv(a, b):
