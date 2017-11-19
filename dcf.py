@@ -158,7 +158,7 @@ with open(outPath, 'w') as of:
       ##Node x sent z bits
 
     #set the next event for each node to be when first packet for that node arrives
-    for i in range(0, numNodes):
+    for i in range(numNodes):
       if(waiting_qwee[i]):
         networkState[i][1] = waiting_qwee[i][0][4]
       else:
@@ -173,7 +173,7 @@ with open(outPath, 'w') as of:
       #but node starting to send takes least precedence
       collision = 0
       shortestTime = 999999999
-      for i in range(0,numNodes+1):
+      for i in range(numNodes):
         if(waiting_qwee[i]):
           if(not isBusy):
             if(networkState[i][1] < shortestTime):
@@ -199,7 +199,7 @@ with open(outPath, 'w') as of:
       #--------------HANDLE COLLISION--------------
       if(collision):
         longestPacket = 0
-        for i in range(0,numNodes+1):
+        for i in range(numNodes):
           if(waiting_qwee[i]):
             if(networkState[i][1] == shortestTime and networkState[i][0] == 2):
               of.write("Time: {} Node {} finished waiting and is ready to send the packet.(collision)\n".format(time, waiting_qwee[i][0][1]))
@@ -269,6 +269,10 @@ with open(outPath, 'w') as of:
               #if medium was busy update just those waiting for packet from application
               elif(networkState[nodeWhoGetsTurn][0] == 2): #if node started sending
                 if(networkState[i][0] == 1): #reset DIFS for everyone waiting for DIFS
+                  networkState[i][1] = difsTime
+                if(networkState[i][0] == 2):  #reset slots to nearest completed
+                  networkState[i][0] = 1
+                  networkState[i][2] = networkState[i][1]
                   networkState[i][1] = difsTime
               elif(networkState[nodeWhoGetsTurn][0] == 3): #if node just finished sending
                 if(networkState[i][1] == 0): #update this guy only
