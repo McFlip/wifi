@@ -157,7 +157,7 @@ with open(outPath, 'w') as of:
         networkState[i][1] = 999999999
 
     isBusy = 0	#whether medium is currently sending
-    numSending = 0 #how many node currently transmitting
+    sending = 0 #how many node currently transmitting
     collision = 0 #whether we collided
     time = 0
     #******************** A Wild Main Loop Appears! ********************
@@ -174,7 +174,7 @@ with open(outPath, 'w') as of:
               shortestTime = networkState[i][1]
               nodeWhoGetsTurn = i
             elif(networkState[i][1] == shortestTime and networkState[nodeWhoGetsTurn][0] == 2):
-              nodeWhoGetsTurn = i             
+              nodeWhoGetsTurn = i
           else: #isBusy
             if(networkState[i][1] < shortestTime and (networkState[i][0] != 1 or networkState[i][0] != 2) ):
               shortestTime = networkState[i][1]
@@ -190,7 +190,7 @@ with open(outPath, 'w') as of:
       #if node is starting to wait for DIFS
       if(networkState[nodeWhoGetsTurn][0] == 0):
         if(networkState[nodeWhoGetsTurn][2] != 0):
-          of.write("Time: {} Node {} had {} more slots when the channel became busy!\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1]), networkState[nodeWhoGetsTurn][2])
+          of.write("Time: {} Node {} had {} more slots when the channel became busy!\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1], networkState[nodeWhoGetsTurn][2]))
         of.write("Time: {} Node {} started waiting for DIFS\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1]))
       #if node has finished waiting for DIFS
       elif(networkState[nodeWhoGetsTurn][0] == 1):
@@ -216,7 +216,7 @@ with open(outPath, 'w') as of:
         of.write("Time: {} Node {} finished waiting and is ready to send the packet.\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1]))
       #if node has finished waiting for transmission
       elif(networkState[nodeWhoGetsTurn][0] == 3):
-        if(collision)
+        if(collision):
           of.write("Time: {} Node {} has detected a collision\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1], waiting_qwee[nodeWhoGetsTurn][0][3]))
       #if node has finished waiting for ACK
       elif(networkState[nodeWhoGetsTurn][0] == 3):
@@ -251,19 +251,19 @@ with open(outPath, 'w') as of:
         networkState[nodeWhoGetsTurn][2] = 0
         isBusy = 1
         ++sending
-        if(sending > 0)
+        if(sending > 0):
           collision = 1
       elif(networkState[nodeWhoGetsTurn][0] == 3):	#if done waiting for transmission
-        if(collision) #do binary backoff and reset to waiting for DIFS
+        if(collision): #do binary backoff and reset to waiting for DIFS
           networkState[nodeWhoGetsTurn][2] = binExpBackoff(waiting_qwee[nodeWhoGetsTurn][0][6], slotTime, totalLatencyPerNode, waiting_qwee[nodeWhoGetsTurn][0][1])
           ++waiting_qwee[nodeWhoGetsTurn][0][6]
           networkState[nodeWhoGetsTurn][0] = 0
           networkState[nodeWhoGetsTurn][0] = 0
           --sending
-          if(sending == 0)
+          if(sending == 0):
             collision = 0
             isBusy = 0
-        else #no collision
+        else: #no collision
           networkState[nodeWhoGetsTurn][0] = 4
           networkState[nodeWhoGetsTurn][1] = sifsTime + ackTime
       elif(networkState[nodeWhoGetsTurn][0] == 4):	#if done waiting for ACK
