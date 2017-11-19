@@ -209,7 +209,7 @@ with open(outPath, 'w') as of:
         time = time + ceildiv(longestPacket,dataRate)
 
         #print any packets that arrived from applications
-        for i in range(numNodes+1):
+        for i in range(numNodes):
           if(waiting_qwee[i] and networkState[i][0] == 0):
             networkState[i][1] = networkState[i][1] - (time - oldtime)
           if(networkState[i][1] <= 0):
@@ -222,7 +222,7 @@ with open(outPath, 'w') as of:
           stuffToPrint.pop()
 
         #reset that collided nodes state to waiting for DIFS and give them new slot count
-        for i in range(numNodes+1):
+        for i in range(numNodes):
           if(waiting_qwee[i] and networkState[i][0] == 2 and networkState[i][1] == shortestTime):
             networkState[i][0] = 1
             networkState[i][1] = difsTime
@@ -257,7 +257,7 @@ with open(outPath, 'w') as of:
       #--------------UPDATE NETWORKSTATE--------------
       if(not collision):
         #update all the other nodes
-        for i in range(numNodes+1):
+        for i in range(numNodes):
           if(waiting_qwee[i]):
             if(i != nodeWhoGetsTurn):
               #if medium wasn't busy update everyone
