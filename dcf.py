@@ -138,21 +138,19 @@ with open(outPath, 'w') as of:
 		#0 -- waiting for packet from application
 		#1 -- waiting for DIFS
 		#2 -- waiting for slots
-		#3 -- waiting for transmission completion
-    #4 -- waiting for ack
+    #3 -- waiting for ack
 		#if 0, time is until packet arrives
 		#if 1, time is until DIFS finishes
 		#if 2, time is until slots finishes
-    #if 3, time is until transmission completion
-		#if 4, time is until ack is received
+		#if 3, time is until ack is received
 	
 	#Printout statements we need
-      #Node x started waiting for DIFS
-      #Node x finished waiting for DIFS and started waiting for y slots
-	  #Node x finished waiting for DIFS and started waiting for y slots(counter was frozen)
-      #Node x finished waiting and is ready to send the packet.
-      #Node x had y more slots when the channel became busy!
-      #Node x sent z bits
+    ##Node x started waiting for DIFS
+    ##Node x finished waiting for DIFS and started waiting for y slots
+    ##Node x finished waiting for DIFS and started waiting for y slots(counter was frozen)
+    ##Node x finished waiting and is ready to send the packet.
+    #Node x had y more slots when the channel became busy!
+    ##Node x sent z bits
 	  
 	#set the next event for each node to be when first packet for that node arrives
 	for(i = 0; i < numNodes; ++i)
@@ -167,22 +165,30 @@ with open(outPath, 'w') as of:
   while(1)
     #------------find the next event------------
     #if medium isn't busy then any event can win
-    #but node starting to send takes precedence
+    #but node starting to send takes least precedence
     collision = 0
     shortestTime = 999999999
     for(i = 0; i <= numNodes; ++i)
       if(waiting_qwee[i])
-        if(networkState[i][1] < shortestTime)
-          nodeWhoGetsTurn = i
-        elif(networkState[i][1] == shortestTime and networkState[i][0] == 2)
-          if(networkState[nodeWhoGetsTurn][0] == 2)
-            collision = 1
-          else
-            nodeWhoGetsTurn = i  
+        if(not isBusy)
+          if(networkState[i][1] < shortestTime)
+            shortestTime = networkState[i][1]
+            nodeWhoGetsTurn = i
+          elif(networkState[i][1] == shortestTime and networkState[i][0] != 2)
+            nodeWhoGetsTurn = i
+            collision = 0
+          elif(networkState[i][1] == shortestTime and networkState[i][0] == 2)
+            if(networkState[nodeWhoGetsTurn][0] == 2)
+              collision = 1  
+        else #isBusy
+          if(networkState[i][1] < shortestTime and (networkState[i][0] == 0 or networkState[i][0] == 3))
+            shortestTime = networkState[i][1]
+            nodeWhoGetsTurn = i
     #if no more events we are done
     if(shortestTime = 999999999)
       break;
     #update current time
+    oldtime = time
     time = time + networkState[nodeWhoGetsTurn][1]
     
     #--------------HANDLE COLLISION--------------
@@ -192,35 +198,95 @@ with open(outPath, 'w') as of:
         if(waiting_qwee[i])
           if(networkState[i][1] == shortestTime and networkState[i][0] == 2)
             of.write("Time: {} Node {} finished waiting and is ready to send the packet.(collision)\n".format(time, waiting_qwee[i][0][1]))
-            #reset that collided nodes state to waiting for DIFS and give them new slot count
-            networkState[i][0] = 1
-            networkState[i][1] = difsTime
-            networkState[i][2] = binExpBackoff(waiting_qwee[i][0][6], slotTime, totalLatencyPerNode, waiting_qwee[i][0][1])
-            ++waiting_qwee[i][0][6]
             #find the longestPacket of those sending
             if(longestPacket < waiting_qwee[i][0][3])
               longestPacket == waiting_qwee[i][0][3]
       time = time + (longestPacket/dataRate)
+      
+      #print any packets that arrived from applications
+      for(i = 0; i <= numNodes; ++i)
+        if(waiting_qwee[i] and networkState[i][0] == 0)
+          networkState[i][1] = networkState[i][1] - (time - oldtime)
+        if(networkState[i][1] <= 0)
+          stuffToPrint.append(i, waiting_qwee[i][0][4])
+          networkState[i][0] = 1
+          networkState[i][1] = difsTime
+      stuffToPrint.sort(key=lambda x: x[1])
+      while(stuffToPrint)
+        of.write("Time: {} Node {} started waiting for DIFS\n".format(stuffToPrint[-1][0], stuffToPrint[-1][1]))
+        stuffToPrint.pop()
+      
+      #reset that collided nodes state to waiting for DIFS and give them new slot count
+      for(i = 0; i <= numNodes; ++i)
+        if(waiting_qwee[i] and networkState[i][0] == 2 and networkState[i][1] == shortestTime)  
+          networkState[i][0] = 1
+          networkState[i][1] = difsTime
+          networkState[i][2] = binExpBackoff(waiting_qwee[i][0][6], slotTime, totalLatencyPerNode, waiting_qwee[i][0][1])
+          ++waiting_qwee[i][0][6]
+          of.write("Time: {} Node {} did not receive ACK will back off for {} slots\n".format(time, i, networkState[i][2]/slotTime))
+            
+            
+      of.write("Time: {} A collision was recognized\n".format(time))
     else  #no collision         
       #|||||||Process the Event|||||||
       #if node is starting to wait for DIFS
       if(networkState[nodeWhoGetsTurn][0] == 0)
-        networkState[nodeWhoGetsTurn][0] = 1
-        networkState[nodeWhoGetsTurn][1] = difsTime
-        of.write("Time: {} Node {} started waiting for DIFS\n".format(time, waiting_qwee[i][0][1]))
+        of.write("Time: {} Node {} started waiting for DIFS\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1]))
       #if node has finished waiting for DIFS
       elif(networkState[nodeWhoGetsTurn][0] == 1)
-        networkState[nodeWhoGetsTurn][0] = 2
-        if()
-        networkState[nodeWhoGetsTurn][1] = binExpBackoff(waiting_qwee[i][0][6], slotTime, totalLatencyPerNode, waiting_qwee[i][0][1])
-        ++waiting_qwee[i][0][6]
-        of.write("Time: {} Node {} finished waiting for DIFS and started waiting for {} slots\n".format(time, waiting_qwee[i][0][1], networkState[nodeWhoGetsTurn][1]/slotTime))
+        #if node was previous interrupted, continue counting down
+        if(networkState[nodeWhoGetsTurn][2] != 0)
+          networkState[nodeWhoGetsTurn][1] = nodeWhoGetsTurn][2]
+          of.write("Time: {} Node {} finished waiting for DIFS and started waiting for {} slots (counter was frozen)\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1], networkState[nodeWhoGetsTurn][1]/slotTime))
+        else
+          networkState[nodeWhoGetsTurn][1] = binExpBackoff(waiting_qwee[nodeWhoGetsTurn][0][6], slotTime, totalLatencyPerNode, waiting_qwee[nodeWhoGetsTurn][0][1])
+          ++waiting_qwee[i][0][6]
+          of.write("Time: {} Node {} finished waiting for DIFS and started waiting for {} slots\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1], networkState[nodeWhoGetsTurn][1]/slotTime))
       #if node has finished waiting for slots
       elif(networkState[nodeWhoGetsTurn][0] == 2)
-        networkState[nodeWhoGetsTurn][0] = 2
-        networkState[nodeWhoGetsTurn][1] = (waiting_qwee[i][0][3]/dataRate) + sifsTime + ackTime
+        of.write("Time: {} Node {} finished waiting and is ready to send the packet.\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1])
+      #if node has finished waiting for ack
+      elif(networkState[nodeWhoGetsTurn][0] == 3)
+        of.write("Time: {} Node {} sent {} bits\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1], waiting_qwee[nodeWhoGetsTurn][0][3]))
         
-
+    #--------------UPDATE NETWORKSTATE--------------
+    if(not collision)
+      #update all the other nodes
+      for(i = 0; i <= numNodes; ++i)
+        if(waiting_qwee[i])
+          if(i != nodeWhoGetsTurn)
+            #if medium wasn't busy update everyone
+            if(networkState[nodeWhoGetsTurn][0] < 2)
+              networkState[i][1] = networkState[i][1] - (time-oldtime)
+              #round slots left up to nearest slot
+              if(networkState[i][1] == 2)
+                networkState[i][1] = ((networkState[i][1]/slotTime) + 1) * slotTime
+            #if medium was busy update just those waiting for packet from application
+            elif(networkState[nodeWhoGetsTurn][0] == 2) #if node started sending
+              if(networkState[i][0] == 1) #reset DIFS for everyone waiting for DIFS
+                networkState[i][1] = difsTime
+            elif(networkState[nodeWhoGetsTurn][0] == 3) #if node just finished sending
+              if(networkState[i][1] == 0) #update this guy only
+                networkState[i][1] = networkState[i][1] - (time-oldtime)
+      #update the node who got the turn
+      if(networkState[nodeWhoGetsTurn][0] == 0)
+        networkState[nodeWhoGetsTurn][0] = 1
+        networkState[nodeWhoGetsTurn][1] = difsTime
+      elif(networkState[nodeWhoGetsTurn][0] == 1)
+        networkState[nodeWhoGetsTurn][0] = 2
+      elif(networkState[nodeWhoGetsTurn][0] == 2)
+        networkState[nodeWhoGetsTurn][0] = 3
+        networkState[nodeWhoGetsTurn][1] = (waiting_qwee[nodeWhoGetsTurn][0][3]/dataRate) + sifsTime + ackTime
+        isBusy = 1
+      elif(networkState[nodeWhoGetsTurn][0] == 3)
+        waiting_qwee[i].pop(0)
+        networkState[nodeWhoGetsTurn][0] = 0
+        isBusy = 0
+        if(waiting_qwee[i][0][4] <= time)
+          networkState[nodeWhoGetsTurn][1] = 0
+        else
+          networkState[nodeWhoGetsTurn][1] = time - waiting_qwee[i][0][4]
+        networkState[nodeWhoGetsTurn][2] = 0
 
   #of.write("Time: {} Packet: {}: {} {} {} {} start sending{}\n".format(p[4], p[0], p[1], p[2], p[3], p[4], p[5]))
   #of.write("Packet Size: {}  NumSuccess: {}  TimeLastPacketFinished: {} \n".format(packetSize, numSuccess, timeLastPacketFinished))
