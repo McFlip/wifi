@@ -153,6 +153,7 @@ with open(outPath, 'w') as of:
       #2 -- waiting for slots
       #3 -- waiting for packet transmission
       #4 -- waiting for packet ACK
+      #5 -- got interrupted, waiting for nonbusy medium
 
     #Printout statements we need
       #Node x had y more slots when the channel became busy!
@@ -184,7 +185,7 @@ with open(outPath, 'w') as of:
             elif(networkState[i][1] == shortestTime and networkState[nodeWhoGetsTurn][0] == 2):
               nodeWhoGetsTurn = i
           else: #isBusy
-            if(networkState[i][1] < shortestTime and (networkState[i][0] != 1 or networkState[i][0] != 2) ):
+            if(networkState[i][1] < shortestTime and (networkState[i][0] == 0 or networkState[i][0] == 3 or networkState[i][0] == 4) ):
               shortestTime = networkState[i][1]
               nodeWhoGetsTurn = i
       #if no more events we are done
@@ -197,8 +198,6 @@ with open(outPath, 'w') as of:
       #|||||||Process the Event|||||||
       #if node is starting to wait for DIFS
       if(networkState[nodeWhoGetsTurn][0] == 0):
-        if(networkState[nodeWhoGetsTurn][2] != 0):
-          of.write("Time: {} Node {} had {} more slots when the channel became busy!\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1], networkState[nodeWhoGetsTurn][2]))
         of.write("Time: {} Node {} started waiting for DIFS\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1]))
       #if node has finished waiting for DIFS
       elif(networkState[nodeWhoGetsTurn][0] == 1):
@@ -219,6 +218,7 @@ with open(outPath, 'w') as of:
         #if node did backoff
         elif(networkState[nodeWhoGetsTurn][3] == 2):
           of.write("Time: {} Node {} finished waiting for DIFS and started waiting for {} slots (back off after collision)\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1], networkState[nodeWhoGetsTurn][1]/slotTime))
+          networkState[nodeWhoGetsTurn][3] = 0
       #if node has finished waiting for slots
       elif(networkState[nodeWhoGetsTurn][0] == 2):
         of.write("Time: {} Node {} finished waiting and is ready to send the packet.\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1]))
@@ -229,7 +229,10 @@ with open(outPath, 'w') as of:
       #if node has finished waiting for ACK
       elif(networkState[nodeWhoGetsTurn][0] == 4):
         of.write("Time: {} Node {} sent {} bits\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1], waiting_qwee[nodeWhoGetsTurn][0][3]))
-
+      elif(networkState[nodeWhoGetsTurn][0] == 5)
+        if(networkState[nodeWhoGetsTurn][2] != 0)
+          of.write("Time: {} Node {} had {} more slots when the channel became busy!\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1], networkState[nodeWhoGetsTurn][2]/slotTime))
+        of.write("Time: {} Node {} started waiting for DIFS\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1]))
       #--------------UPDATE NETWORKSTATE--------------
       #update all the other nodes
       for i in range(numNodes):
@@ -242,10 +245,10 @@ with open(outPath, 'w') as of:
               if(networkState[nodeWhoGetsTurn][0] == 2):
                 if(networkState[i][0] == 2 and networkState[i][1] != 0):
                   networkState[i][2] = (ceildiv(networkState[i][1],slotTime)) * slotTime
-                  networkState[i][0] = 0
+                  networkState[i][0] = 5
                   networkState[i][1] = 0
                 elif(networkState[i][0] == 1):
-                  networkState[i][0] = 0
+                  networkState[i][0] = 5
                   networkState[i][1] = 0
       #update the node who got the turn
       if(networkState[nodeWhoGetsTurn][0] == 0):	#if done waiting for packet
@@ -285,6 +288,9 @@ with open(outPath, 'w') as of:
             networkState[nodeWhoGetsTurn][1] = time - waiting_qwee[nodeWhoGetsTurn][0][4]
         else:
           networkState[nodeWhoGetsTurn][1] = 999999999
+      elif(networkState[nodeWhoGetsTurn][0] == 5):	#if started to wait for DIFS after interrupt
+        networkState[nodeWhoGetsTurn][0] = 1
+        networkState[nodeWhoGetsTurn][1] = difsTime
 
     #of.write("Time: {} Packet: {}: {} {} {} {} start sending{}\n".format(p[4], p[0], p[1], p[2], p[3], p[4], p[5]))
     #of.write("Packet Size: {}  NumSuccess: {}  TimeLastPacketFinished: {} \n".format(packetSize, numSuccess, timeLastPacketFinished))
