@@ -27,14 +27,14 @@ def processQue(sending_qwee, time, numOfTransmissions, numOfCollisions, timeMedi
 #numBackOffs increments when an ack is not received
 def binExpBackoff(numOfBackoffs, slotTime, totalLatencyPerNode, src_node):
   if(numOfBackoffs == 0):
-    timeToWait = randint(0, 15*slotTime)
+    slotsToWait = randint(0, 15)
   elif(numOfBackoffs >=6):
-    timeToWait = randint(0, 1024*slotTime)
+    slotsToWait = randint(0, 1024)
   else:
-    timeToWait = randint(0, (32 * (2 ** (numOfBackoffs-1))) * slotTime)
+    slotsToWait = randint(0, (32 * (2 ** (numOfBackoffs-1))))
     #!!!!Will this value actually be changed!?!?
-  totalLatencyPerNode[src_node] = totalLatencyPerNode[src_node] + timeToWait
-  return timeToWait
+  totalLatencyPerNode[src_node] = totalLatencyPerNode[src_node] + (timeToWait * slotsToWait)
+  return timeToWait * slotTime
 
 #ceiling division
 def ceildiv(a, b):
@@ -219,7 +219,7 @@ with open(outPath, 'w') as of:
         if(collision):
           of.write("Time: {} Node {} has detected a collision\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1], waiting_qwee[nodeWhoGetsTurn][0][3]))
       #if node has finished waiting for ACK
-      elif(networkState[nodeWhoGetsTurn][0] == 3):
+      elif(networkState[nodeWhoGetsTurn][0] == 4):
         of.write("Time: {} Node {} sent {} bits\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1], waiting_qwee[nodeWhoGetsTurn][0][3]))
 
       #--------------UPDATE NETWORKSTATE--------------
@@ -227,7 +227,7 @@ with open(outPath, 'w') as of:
       for i in range(numNodes):
         if(waiting_qwee[i] and i != nodeWhoGetsTurn):
             if(isBusy):
-              if(networkState[i][0] == 0 and networkState[i][0] == 3 and networkState[i][0] == 4):
+              if(networkState[i][0] == 0 or networkState[i][0] == 3 or networkState[i][0] == 4):
                 networkState[i][1] = networkState[i][1] - (time-oldtime)
             else: #if not Busy
               networkState[i][1] = networkState[i][1] - (time-oldtime)
