@@ -36,6 +36,10 @@ def binExpBackoff(numOfBackoffs, slotTime, totalLatencyPerNode, src_node):
   totalLatencyPerNode[src_node] = totalLatencyPerNode[src_node] + timeToWait
   return timeToWait
 
+#ceiling division
+def ceildiv(a, b):
+  return -(-a // b)
+
 #*** set up arguments ***
 parser = argparse.ArgumentParser(prog='DCF', description='Simulates the 802.11 DCF MAC protocol for a given traffic file.')
 parser.add_argument("-t","--trafficfile", help="traffic file", default=os.path.join(os.getcwd(), "traffic"))
@@ -202,7 +206,7 @@ with open(outPath, 'w') as of:
               #find the longestPacket of those sending
               if(longestPacket < waiting_qwee[i][0][3]):
                 longestPacket == waiting_qwee[i][0][3]
-        time = time + (longestPacket/dataRate)
+        time = time + ceildiv(longestPacket,dataRate)
 
         #print any packets that arrived from applications
         for i in range(numNodes+1):
@@ -261,7 +265,7 @@ with open(outPath, 'w') as of:
                 networkState[i][1] = networkState[i][1] - (time-oldtime)
                 #round slots left up to nearest slot
                 if(networkState[i][1] == 2):
-                  networkState[i][1] = ((networkState[i][1]/slotTime) + 1) * slotTime
+                  networkState[i][1] = (ceildiv(networkState[i][1],slotTime)) * slotTime
               #if medium was busy update just those waiting for packet from application
               elif(networkState[nodeWhoGetsTurn][0] == 2): #if node started sending
                 if(networkState[i][0] == 1): #reset DIFS for everyone waiting for DIFS
@@ -277,7 +281,7 @@ with open(outPath, 'w') as of:
           networkState[nodeWhoGetsTurn][0] = 2
         elif(networkState[nodeWhoGetsTurn][0] == 2):
           networkState[nodeWhoGetsTurn][0] = 3
-          networkState[nodeWhoGetsTurn][1] = (waiting_qwee[nodeWhoGetsTurn][0][3]/dataRate) + sifsTime + ackTime
+          networkState[nodeWhoGetsTurn][1] = ceildiv(waiting_qwee[nodeWhoGetsTurn][0][3],dataRate) + sifsTime + ackTime
           isBusy = 1
         elif(networkState[nodeWhoGetsTurn][0] == 3):
           waiting_qwee[nodeWhoGetsTurn].popleft()
