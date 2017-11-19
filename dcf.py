@@ -207,23 +207,23 @@ with open(outPath, 'w') as of:
               if(longestPacket < waiting_qwee[i][0][3]):
                 longestPacket == waiting_qwee[i][0][3]
         time = time + ceildiv(longestPacket,dataRate)
-				
+
         #do a state update but only kinda
         for i in range(numNodes):
-					#if they hadn't arrived check if they shouldda arrived
+          #if they hadn't arrived check if they shouldda arrived
           if waiting_qwee[i]:
-						if networkState[i][0] == 0):
-							networkState[i][1] = networkState[i][1] - (time - oldtime)
-							if(networkState[i][1] <= 0):
-								stuffToPrint.append(i, waiting_qwee[i][0][4])
-								networkState[i][0] = 1
-								networkState[i][1] = difsTime
-						elif(networkState[i][0] == 1):
-							networkState[i][1] = difsTime	
-						if(networkState[i][0] == 2):
-							networkState[i][2] = (ceildiv(networkState[i][1],slotTime)) * slotTime
-							networkState[i][0] = 1
-							networkState[i][1] = difsTime
+            if networkState[i][0] == 0:
+              networkState[i][1] = networkState[i][1] - (time - oldtime)
+              if(networkState[i][1] <= 0):
+                stuffToPrint.append(i, waiting_qwee[i][0][4])
+                networkState[i][0] = 1
+                networkState[i][1] = difsTime
+            elif(networkState[i][0] == 1):
+              networkState[i][1] = difsTime
+            if(networkState[i][0] == 2):
+              networkState[i][2] = (ceildiv(networkState[i][1],slotTime)) * slotTime
+              networkState[i][0] = 1
+              networkState[i][1] = difsTime
         stuffToPrint.sort(key=lambda x: x[1])
         while(stuffToPrint):
           of.write("Time: {} Node {} started waiting for DIFS\n".format(stuffToPrint[-1][1], stuffToPrint[-1][0]))
@@ -237,9 +237,9 @@ with open(outPath, 'w') as of:
             networkState[i][2] = binExpBackoff(waiting_qwee[i][0][6], slotTime, totalLatencyPerNode, waiting_qwee[i][0][1])
             ++waiting_qwee[i][0][6]
             of.write("Time: {} Node {} did not receive ACK will back off for {} slots\n".format(time, i, networkState[i][2]/slotTime))
-						
+
         of.write("Time: {} A collision was recognized\n".format(time))
-				
+
       else:  #no collision
         #|||||||Process the Event|||||||
         #if node is starting to wait for DIFS
@@ -250,7 +250,7 @@ with open(outPath, 'w') as of:
           #if node was previous interrupted, continue counting down
           if(networkState[nodeWhoGetsTurn][2] != 0):
             networkState[nodeWhoGetsTurn][1] = networkState[nodeWhoGetsTurn][2]
-						networkState[nodeWhoGetsTurn][2] = 0
+            networkState[nodeWhoGetsTurn][2] = 0
             of.write("Time: {} Node {} finished waiting for DIFS and started waiting for {} slots (counter was frozen)\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1], networkState[nodeWhoGetsTurn][1]/slotTime))
           else:
             networkState[nodeWhoGetsTurn][1] = binExpBackoff(waiting_qwee[nodeWhoGetsTurn][0][6], slotTime, totalLatencyPerNode, waiting_qwee[nodeWhoGetsTurn][0][1])
@@ -269,18 +269,18 @@ with open(outPath, 'w') as of:
         for i in range(numNodes):
           if(waiting_qwee[i]):
             if(i != nodeWhoGetsTurn):
-							if(isBusy)
-								if(networkState[i][1] == 0): #update this guy only
+              if(isBusy):
+                if(networkState[i][1] == 0): #update this guy only
                   networkState[i][1] = networkState[i][1] - (time-oldtime)
-							else: #if not Busy
+              else: #if not Busy
                 networkState[i][1] = networkState[i][1] - (time-oldtime)
-								if(networkState[nodeWhoGetsTurn][0] == 2):
-									if(networkState[i][0] == 2):
-										networkState[i][2] = (ceildiv(networkState[i][1],slotTime)) * slotTime
-										networkState[i][0] = 1
-										networkState[i][1] = difsTime
-									elif(networkState[i][0] == 1):
-										networkState[i][1] = difsTime				
+                if(networkState[nodeWhoGetsTurn][0] == 2):
+                  if(networkState[i][0] == 2):
+                    networkState[i][2] = (ceildiv(networkState[i][1],slotTime)) * slotTime
+                    networkState[i][0] = 1
+                    networkState[i][1] = difsTime
+                  elif(networkState[i][0] == 1):
+                    networkState[i][1] = difsTime
         #update the node who got the turn
         if(networkState[nodeWhoGetsTurn][0] == 0):	#if done waiting for packet
           networkState[nodeWhoGetsTurn][0] = 1
@@ -293,15 +293,15 @@ with open(outPath, 'w') as of:
           isBusy = 1
         elif(networkState[nodeWhoGetsTurn][0] == 3):	#if done waiting for ACK
           waiting_qwee[nodeWhoGetsTurn].popleft()
-					networkState[nodeWhoGetsTurn][0] = 0
+          networkState[nodeWhoGetsTurn][0] = 0
           isBusy = 0
           if waiting_qwee[nodeWhoGetsTurn]:
             if(waiting_qwee[nodeWhoGetsTurn][0][4] <= time):
               networkState[nodeWhoGetsTurn][1] = 0
             else:
               networkState[nodeWhoGetsTurn][1] = time - waiting_qwee[nodeWhoGetsTurn][0][4]
-					else
-						networkState[nodeWhoGetsTurn][1] = 999999999
+          else:
+            networkState[nodeWhoGetsTurn][1] = 999999999
           networkState[nodeWhoGetsTurn][2] = 0
 
     #of.write("Time: {} Packet: {}: {} {} {} {} start sending{}\n".format(p[4], p[0], p[1], p[2], p[3], p[4], p[5]))
