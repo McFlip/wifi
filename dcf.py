@@ -14,16 +14,6 @@ from nonrandom import * #TEST
 
 
 #*** Function definitions ***
-def processQue(sending_qwee, time, numOfTransmissions, numOfCollisions, timeMediaUtilized):
-  while(sending_qwee and (int(packet_qwee[0][4]) + int(packet_qwee[0][3]) <= time or time == -1)):
-    if packet_queu[0][5] == ": collision":
-      finish = "finish sending: failed"
-    else:
-      finish = "finish sending: successfully transmitted"
-      numSuccess = numSuccess + 1
-    of.write("Time: {} Packet: {}: {} {} {} {} {}\n".format(int(packet_queu[0][4]) + int(packet_queu[0][3]), packet_queu[0][0], packet_queu[0][1], packet_queu[0][2], packet_queu[0][3], packet_queu[0][4], finish))
-    packet_queu.popleft()
-  return numSuccess
 
 #returns a time 0 to 15 at first
 #numBackOffs increments when an ack is not received
@@ -71,8 +61,7 @@ if not os.access(outDir, os.W_OK):
 #****** MAIN FUNCTION ******
 
 #*** Vars ***
-sending_qwee = deque()
-waiting_qwee = [deque()]
+waiting_qwee = []
 outPath = outDir + "/" + outfile
 
 numNodes = 0
@@ -118,7 +107,7 @@ with open(outPath, 'w') as of:
       #count number of packets sent by each node
       numPktPerNode[packet[1]] += 1
 
-      packet.append(9999)  #time_to_backoff
+      packet.append(0)  #time_to_backoff
       packet.append(0)  #num_backoffs
 
       waiting_qwee[packet[1]].append(packet)
@@ -139,7 +128,7 @@ with open(outPath, 'w') as of:
       #******************************************
 
       #******************** Real Meaty Code ********************
-    #networkState[nodeID] = [currentStatusType, timeTillNextThing, slotsLeft, normal/freezed/backoff]
+    #networkState[nodeID] = [currentStatusType, timeTillNextThing, slotsTimeLeft, normal/freezed/backoff]
     networkState = [[0, 0, 0, 0] for i in range(numNodes)]
     #currentStatusType
       #0 -- waiting for packet from application
@@ -185,6 +174,7 @@ with open(outPath, 'w') as of:
       #if no more events we are done
       if(shortestTime == 999999999):
         break
+        
       #update current time
       oldtime = time
       time = time + networkState[nodeWhoGetsTurn][1]
@@ -233,7 +223,7 @@ with open(outPath, 'w') as of:
       for i in range(numNodes):
         if(waiting_qwee[i] and i != nodeWhoGetsTurn):
             if(isBusy):
-              if(networkState[i][0] == 0 or networkState[i][0] == 3 or networkState[i][0] == 4):
+              if(networkState[i][0] == 0 or networkState[i][0] == 3):
                 networkState[i][1] = networkState[i][1] - (time-oldtime)
             else: #if not Busy
               networkState[i][1] = networkState[i][1] - (time-oldtime)
@@ -250,6 +240,8 @@ with open(outPath, 'w') as of:
       if(networkState[nodeWhoGetsTurn][0] == 0):	#if done waiting for packet
         networkState[nodeWhoGetsTurn][0] = 5
         networkState[nodeWhoGetsTurn][1] = 0
+        networkState[nodeWhoGetsTurn][2] = 0
+        networkState[nodeWhoGetsTurn][3] = 0
       elif(networkState[nodeWhoGetsTurn][0] == 1):	#if done waiting for DIFS
         networkState[nodeWhoGetsTurn][0] = 2
       elif(networkState[nodeWhoGetsTurn][0] == 2):	#if done waiting for slots
@@ -279,6 +271,7 @@ with open(outPath, 'w') as of:
       elif(networkState[nodeWhoGetsTurn][0] == 4):	#if done waiting for ACK
         waiting_qwee[nodeWhoGetsTurn].popleft()
         networkState[nodeWhoGetsTurn][0] = 0
+        sending -= 1
         isBusy = 0
         if waiting_qwee[nodeWhoGetsTurn]:
           if(waiting_qwee[nodeWhoGetsTurn][0][4] <= time):
