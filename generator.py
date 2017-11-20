@@ -47,7 +47,6 @@ exponential = args.exponential
 
 # Vars
 outPath = outDir + "/" + outfile
-global num_node
 num_node = args.num_node
 pkt_size = int(args.pkt_size)
 offered_load = args.offered_load
@@ -57,11 +56,8 @@ if args.seed == None:
 else:
   mySeed = int(args.seed)
 tot_packets = num_node * num_pkts_per_node
-global gap
 gap = int((pkt_size * num_node / offered_load) - pkt_size)
-global Tx_time
 Tx_time = pkt_size
-global packet_table
 packet_table = []
 
 # do stuff
@@ -85,4 +81,3 @@ with open(outPath, 'w') as of:
   of.write("{} {}\n".format(tot_packets,offered_load))
   for row in packet_table:
     of.write("{} {} {} {} {}\n".format(row[0], row[1], row[2], row[3], row[4]))
-    #of.write("{},{},{},{},{}\n".format(row[0], row[1], row[2], row[3], row[4]))

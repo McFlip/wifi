@@ -10,7 +10,7 @@ import os
 from collections import deque
 from copy import deepcopy
 from random import *
-#from nonrandom import * #TEST
+#from nonrandom import * #TEST deterministic random for TESTING
 
 
 #*** Function definitions ***
@@ -81,7 +81,7 @@ with open(outPath, 'w') as of:
     stats = tf.readline()
     stats = stats.split()
     numPackets = int(stats[0])
-    #offerdLoad = float(stats[1])
+    offerdLoad = float(stats[1]) #NOTE !!!!! COMMENT OUT FOR TURN IN !!!!!! #NOTE
 
     for line in tf:
     #**** line format *************
@@ -171,6 +171,7 @@ with open(outPath, 'w') as of:
               nodeWhoGetsTurn = i
       #if no more events we are done
       if(shortestTime == 999999999):
+        totalTime = time
         break
 
       #update current time
@@ -290,11 +291,19 @@ with open(outPath, 'w') as of:
 statfile = outDir + "/" + outfile + ".stats"
 
 #**** Output some statistics here ****
-#throughput = (timeMediaUtilized * dataRate) / totalTime
-#numOfTransmissions
-#numOfCollisions
-#fracMediaFree = (totalTime - timeMediaUtilized) / totalTime
-#numPktPerNode[]
-#avgLatencyPerNode = totalLatencyPerNode[i] / numPktPerNode[i]
-#with open(statfile, 'w') as sf:
-  #sf.write("{},{}\n".format(offerdLoad,throughput))
+
+throughput = float((timeMediaUtilized * dataRate) / totalTime)
+fracMediaFree = float((totalTime - timeMediaUtilized) / totalTime)
+avgLatencyPerNode = float(sum(totalLatencyPerNode) / sum(numPktPerNode))
+stats = [offerdLoad,throughput,numOfTransmissions,numOfCollisions,fracMediaFree,numPktPerNode[0],avgLatencyPerNode]
+stats = [str(x) for x in stats]
+with open(statfile, 'w') as sf:
+  sf.write(','.join(stats))
+print "timeMediaUtilized: ", timeMediaUtilized
+print "dataRate: ", dataRate
+print "totalTime: ", totalTime
+print "throughput: ", throughput
+print "fracMediaFree: ", fracMediaFree
+print "totalLatencyPerNode: ", totalLatencyPerNode
+print "numPktPerNode: ", numPktPerNode[0]
+print "avgLatencyPerNode: ", avgLatencyPerNode
