@@ -275,11 +275,11 @@ with open(outPath, 'w') as of:
           networkState[nodeWhoGetsTurn][0] = 4
           networkState[nodeWhoGetsTurn][1] = sifsTime + ackTime
       elif(networkState[nodeWhoGetsTurn][0] == 4):	#if done waiting for ACK
+        timeMediaBusy += ceildiv(waiting_qwee[nodeWhoGetsTurn][0][3],dataRate) +ackTime
         waiting_qwee[nodeWhoGetsTurn].popleft()
         networkState[nodeWhoGetsTurn][0] = 0
         sending -= 1
         isBusy = 0
-        timeMediaBusy += ceildiv(waiting_qwee[nodeWhoGetsTurn][0][3],dataRate) +ackTime
         if waiting_qwee[nodeWhoGetsTurn]:
           if(waiting_qwee[nodeWhoGetsTurn][0][4] <= time):
             networkState[nodeWhoGetsTurn][1] = 0
@@ -303,11 +303,11 @@ stats = [offerdLoad,throughput,numOfTransmissions,numOfCollisions,fracMediaFree,
 stats = [str(x) for x in stats]
 with open(statfile, 'w') as sf:
   sf.write(','.join(stats))
-print "timeMediaUtilized: ", timeMediaUtilized
-print "dataRate: ", dataRate
-print "totalTime: ", totalTime
-print "throughput: ", throughput
+print "timeMediaUtilized: ", timeMediaUtilized, u'\u00b5'
+print "dataRate: ", dataRate, " Mbps"
+print "totalTime: ", totalTime, u'\u00b5'
+print "throughput: ", throughput, " Mbps"
 print "fracMediaFree: ", fracMediaFree
 print "totalLatencyPerNode: ", totalLatencyPerNode
-print "numPktPerNode: ", numPktPerNode[0]
-print "avgLatencyPerNode: ", avgLatencyPerNode
+print "numPktPerNode: ", numPktPerNode
+print "avgLatencyPerNode: ", avgLatencyPerNode, u'\u00b5'
