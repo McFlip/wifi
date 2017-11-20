@@ -68,6 +68,7 @@ timeMediaUtilized = 0	#increment this by (pkt_size/dataRate) when a packet succe
 totalTime = 0 #set this equal to the time the last packet successfully finishes transmission
 numOfTransmissions = 0 #increment each time a packet attempts transmission
 numPktPerNode = []
+timeMediaBusy = 0
 
 dataRate = 6	#Mbps, 6 bits are sent per microsecond
 ackTime = 44	#us
@@ -267,6 +268,7 @@ with open(outPath, 'w') as of:
           if(sending == 0):
             collision = 0
             isBusy = 0
+            timeMediaBusy += ceildiv(waiting_qwee[nodeWhoGetsTurn][0][3],dataRate)
         else: #no collision
           timeMediaUtilized += ceildiv(waiting_qwee[nodeWhoGetsTurn][0][3],dataRate)
           totalLatencyPerNode[nodeWhoGetsTurn] += time - waiting_qwee[nodeWhoGetsTurn][0][4]
@@ -277,6 +279,7 @@ with open(outPath, 'w') as of:
         networkState[nodeWhoGetsTurn][0] = 0
         sending -= 1
         isBusy = 0
+        timeMediaBusy += ceildiv(waiting_qwee[nodeWhoGetsTurn][0][3],dataRate) +ackTime
         if waiting_qwee[nodeWhoGetsTurn]:
           if(waiting_qwee[nodeWhoGetsTurn][0][4] <= time):
             networkState[nodeWhoGetsTurn][1] = 0
@@ -293,7 +296,8 @@ statfile = outDir + "/" + outfile + ".stats"
 #**** Output some statistics here ****
 
 throughput = float(timeMediaUtilized) / totalTime * dataRate
-fracMediaFree = float((totalTime - timeMediaUtilized)) / totalTime
+fracMediaFree = float(totalTime - timeMediaBusy) / totalTime
+#fracMediaFree = float((totalTime - timeMediaUtilized)) / totalTime
 avgLatencyPerNode = float(sum(totalLatencyPerNode)) / sum(numPktPerNode)
 stats = [offerdLoad,throughput,numOfTransmissions,numOfCollisions,fracMediaFree,numPktPerNode[0],avgLatencyPerNode]
 stats = [str(x) for x in stats]
