@@ -9,23 +9,21 @@ import argparse
 import os
 from collections import deque
 from copy import deepcopy
-#from random import *
-from nonrandom import * #TEST
+from random import *
+#from nonrandom import * #TEST
 
 
 #*** Function definitions ***
 
 #returns a time 0 to 15 at first
 #numBackOffs increments when an ack is not received
-def binExpBackoff(numOfBackoffs, slotTime, totalLatencyPerNode, src_node):
+def binExpBackoff(numOfBackoffs, slotTime):
   if(numOfBackoffs == 0):
     slotsToWait = randint(0, 15)
   elif(numOfBackoffs >=6):
     slotsToWait = randint(0, 1024)
   else:
     slotsToWait = randint(0, (32 * (2 ** (numOfBackoffs-1))))
-    #!!!!Will this value actually be changed!?!?
-  totalLatencyPerNode[src_node] = totalLatencyPerNode[src_node] + (slotsToWait * slotTime)
   return slotsToWait * slotTime
 
 #ceiling division
@@ -174,7 +172,7 @@ with open(outPath, 'w') as of:
       #if no more events we are done
       if(shortestTime == 999999999):
         break
-        
+
       #update current time
       oldtime = time
       time = time + networkState[nodeWhoGetsTurn][1]
@@ -188,7 +186,7 @@ with open(outPath, 'w') as of:
       elif(networkState[nodeWhoGetsTurn][0] == 1):
         #check if node already picked slots
         if(networkState[nodeWhoGetsTurn][2] == 0):
-          networkState[nodeWhoGetsTurn][1] = binExpBackoff(waiting_qwee[nodeWhoGetsTurn][0][6], slotTime, totalLatencyPerNode, waiting_qwee[nodeWhoGetsTurn][0][1])
+          networkState[nodeWhoGetsTurn][1] = binExpBackoff(waiting_qwee[nodeWhoGetsTurn][0][6], slotTime)
           waiting_qwee[nodeWhoGetsTurn][0][6] += 1
         else:
           networkState[nodeWhoGetsTurn][1] = networkState[nodeWhoGetsTurn][2]
@@ -216,7 +214,10 @@ with open(outPath, 'w') as of:
         of.write("Time: {} Node {} sent {} bits\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1], waiting_qwee[nodeWhoGetsTurn][0][3]))
       elif(networkState[nodeWhoGetsTurn][0] == 5):
         if(networkState[nodeWhoGetsTurn][2] != 0):
-          of.write("Time: {} Node {} had {} more slots when the channel became busy!\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1], networkState[nodeWhoGetsTurn][2]/slotTime))
+          if (networkState[nodeWhoGetsTurn][3] == 1):
+            of.write("Time: {} Node {} had {} more slots when the channel became busy!\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1], networkState[nodeWhoGetsTurn][2]/slotTime))
+          elif(networkState[nodeWhoGetsTurn][3] == 2):
+            of.write("Time: {} Node {} had detected a collision and decided to backoff {} slots\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1], networkState[nodeWhoGetsTurn][2]/slotTime))
         of.write("Time: {} Node {} started waiting for DIFS\n".format(time, waiting_qwee[nodeWhoGetsTurn][0][1]))
       #--------------UPDATE NETWORKSTATE--------------
       #update all the other nodes
@@ -250,22 +251,24 @@ with open(outPath, 'w') as of:
         networkState[nodeWhoGetsTurn][2] = 0
         isBusy = 1
         sending += 1
+        numOfTransmissions += 1
         if(sending > 1):
           collision = 1
-          print "line263:", collision #TEST
       elif(networkState[nodeWhoGetsTurn][0] == 3):	#if done waiting for transmission
         if(collision): #do binary backoff and reset to waiting for DIFS
-          networkState[nodeWhoGetsTurn][2] = binExpBackoff(waiting_qwee[nodeWhoGetsTurn][0][6], slotTime, totalLatencyPerNode, waiting_qwee[nodeWhoGetsTurn][0][1])
+          networkState[nodeWhoGetsTurn][2] = binExpBackoff(waiting_qwee[nodeWhoGetsTurn][0][6], slotTime)
           waiting_qwee[nodeWhoGetsTurn][0][6] += 1
           networkState[nodeWhoGetsTurn][0] = 5
           networkState[nodeWhoGetsTurn][1] = 0
           networkState[nodeWhoGetsTurn][3] = 2
+          numOfCollisions += 1
           sending -= 1
           if(sending == 0):
             collision = 0
-            print "line274:", collision #TEST
             isBusy = 0
         else: #no collision
+          timeMediaUtilized += ceildiv(waiting_qwee[nodeWhoGetsTurn][0][3],dataRate)
+          totalLatencyPerNode[nodeWhoGetsTurn] += time - waiting_qwee[nodeWhoGetsTurn][0][4]
           networkState[nodeWhoGetsTurn][0] = 4
           networkState[nodeWhoGetsTurn][1] = sifsTime + ackTime
       elif(networkState[nodeWhoGetsTurn][0] == 4):	#if done waiting for ACK
@@ -284,14 +287,14 @@ with open(outPath, 'w') as of:
         networkState[nodeWhoGetsTurn][0] = 1
         networkState[nodeWhoGetsTurn][1] = difsTime
 
-    #of.write("Time: {} Packet: {}: {} {} {} {} start sending{}\n".format(p[4], p[0], p[1], p[2], p[3], p[4], p[5]))
-    #of.write("Packet Size: {}  NumSuccess: {}  TimeLastPacketFinished: {} \n".format(packetSize, numSuccess, timeLastPacketFinished))
-
 statfile = outDir + "/" + outfile + ".stats"
 
 #**** Output some statistics here ****
 #throughput = (timeMediaUtilized * dataRate) / totalTime
+#numOfTransmissions
+#numOfCollisions
 #fracMediaFree = (totalTime - timeMediaUtilized) / totalTime
+#numPktPerNode[]
 #avgLatencyPerNode = totalLatencyPerNode[i] / numPktPerNode[i]
 #with open(statfile, 'w') as sf:
   #sf.write("{},{}\n".format(offerdLoad,throughput))
