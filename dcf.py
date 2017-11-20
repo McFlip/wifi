@@ -292,9 +292,9 @@ statfile = outDir + "/" + outfile + ".stats"
 
 #**** Output some statistics here ****
 
-throughput = float((timeMediaUtilized * dataRate) / totalTime)
-fracMediaFree = float((totalTime - timeMediaUtilized) / totalTime)
-avgLatencyPerNode = float(sum(totalLatencyPerNode) / sum(numPktPerNode))
+throughput = float(timeMediaUtilized) / totalTime * dataRate
+fracMediaFree = float((totalTime - timeMediaUtilized)) / totalTime
+avgLatencyPerNode = float(sum(totalLatencyPerNode)) / sum(numPktPerNode)
 stats = [offerdLoad,throughput,numOfTransmissions,numOfCollisions,fracMediaFree,numPktPerNode[0],avgLatencyPerNode]
 stats = [str(x) for x in stats]
 with open(statfile, 'w') as sf:
