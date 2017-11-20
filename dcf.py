@@ -281,7 +281,7 @@ with open(outPath, 'w') as of:
           if(waiting_qwee[nodeWhoGetsTurn][0][4] <= time):
             networkState[nodeWhoGetsTurn][1] = 0
           else:
-            networkState[nodeWhoGetsTurn][1] = time - waiting_qwee[nodeWhoGetsTurn][0][4]
+            networkState[nodeWhoGetsTurn][1] = waiting_qwee[nodeWhoGetsTurn][0][4] - time
         else:
           networkState[nodeWhoGetsTurn][1] = 999999999
       elif(networkState[nodeWhoGetsTurn][0] == 5):	#if started to wait for DIFS after interrupt
