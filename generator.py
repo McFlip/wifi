@@ -8,8 +8,9 @@ import os
 from random import *
 
 # Function definitions
-def next_time(curr_time):
+def next_time(curr_time, pkt_sz):
   curr_gap = randint(0, 2*gap)
+  Tx_time = int(pkt_sz / data_rate)
   return curr_time + Tx_time + curr_gap
 
 def expo(size):
@@ -57,7 +58,7 @@ else:
   mySeed = int(args.seed)
 tot_packets = num_node * num_pkts_per_node
 gap = int((pkt_size * num_node / offered_load) - pkt_size)
-Tx_time = pkt_size
+data_rate = 6
 packet_table = []
 
 # do stuff
@@ -65,15 +66,19 @@ seed(mySeed)
 for i in range(num_node):
   curr_time = randint(0, 2*gap)
   if exponential:
-    packet_table.append([i, i, -1, expo(pkt_size), curr_time])
+    curr_pkt_size = expo(pkt_size)
+    packet_table.append([i, i, -1, curr_pkt_size, curr_time])
   else:
-    packet_table.append([i, i, -1, randint(1, 2 *pkt_size), curr_time])
+    curr_pkt_size = randint(1, 2 *pkt_size)
+    packet_table.append([i, i, -1, curr_pkt_size, curr_time])
   for j in range(1, num_pkts_per_node):
-    curr_time = next_time(curr_time)
+    curr_time = next_time(curr_time, curr_pkt_size)
     if exponential:
-      packet_table.append([i, i, -1, expo(pkt_size), curr_time])
+      curr_pkt_size = expo(pkt_size)
+      packet_table.append([i, i, -1, curr_pkt_size, curr_time])
     else:
-      packet_table.append([i+j*num_node, i, -1, randint(1, 2 *pkt_size), curr_time])
+      curr_pkt_size = randint(1, 2 *pkt_size)
+      packet_table.append([i+j*num_node, i, -1, curr_pkt_size, curr_time])
 
 # finish
 packet_table.sort(key=lambda x: int(x[4]))
