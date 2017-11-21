@@ -84,7 +84,7 @@ with open(outPath, 'w') as of:
     stats = tf.readline()
     stats = stats.split()
     numPackets = int(stats[0])
-    offerdLoad = float(stats[1]) #NOTE !!!!! COMMENT OUT FOR TURN IN !!!!!! #NOTE
+    #offerdLoad = float(stats[1]) #NOTE !!!!! COMMENT OUT FOR TURN IN !!!!!! #NOTE
 
     for line in tf:
     #**** line format *************
@@ -303,8 +303,8 @@ fracMediaFree = float(totalTime - timeMediaBusy) / totalTime
 avgLatencyPerNode = float(sum(totalLatencyPerNode)) / sum(numPktPerNode)
 stats = [offerdLoad,throughput,numOfTransmissions,numOfCollisions,fracMediaFree,numPktPerNode[0],avgLatencyPerNode]
 stats = [str(x) for x in stats]
-with open(statfile, 'w') as sf:
-  sf.write(','.join(stats))
+#with open(statfile, 'w') as sf:
+  #sf.write(','.join(stats))
 print "timeMediaUtilized: ", timeMediaUtilized, u'\u00b5'
 print "dataRate: ", dataRate, " Mbps"
 print "totalTime: ", totalTime, u'\u00b5'
