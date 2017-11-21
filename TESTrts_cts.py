@@ -312,11 +312,11 @@ stats = [offerdLoad,throughput,numOfTransmissions,numOfCollisions,fracMediaFree,
 stats = [str(x) for x in stats]
 with open(statfile, 'w') as sf:
   sf.write(','.join(stats)+'\n')
-print "timeMediaUtilized: ", timeMediaUtilized, u'\u00b5'
-print "dataRate: ", dataRate, " Mbps"
-print "totalTime: ", totalTime, u'\u00b5'
-print "throughput: ", throughput, " Mbps"
-print "fracMediaFree: ", fracMediaFree
-print "totalLatencyPerNode: ", totalLatencyPerNode
-print "numPktPerNode: ", numPktPerNode
-print "avgLatencyPerNode: ", avgLatencyPerNode, u'\u00b5'
+#print "timeMediaUtilized: ", timeMediaUtilized, u'\u00b5'
+#print "dataRate: ", dataRate, " Mbps"
+#print "totalTime: ", totalTime, u'\u00b5'
+#print "throughput: ", throughput, " Mbps"
+#print "fracMediaFree: ", fracMediaFree
+#print "totalLatencyPerNode: ", totalLatencyPerNode
+#print "numPktPerNode: ", numPktPerNode
+#print "avgLatencyPerNode: ", avgLatencyPerNode, u'\u00b5'
